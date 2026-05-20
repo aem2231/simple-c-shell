@@ -1,0 +1,6 @@
+bin/
+out/
+.direnv
+.git/
+.envrc
+
