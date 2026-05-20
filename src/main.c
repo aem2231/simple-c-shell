@@ -33,7 +33,6 @@ execute (char **args)
 {
 	// new child process
 	int process_id = fork ();
-
 	if (process_id < 0) // fork always returns -1 on error
 	{
 		printf ("Fork failed\n");
@@ -41,7 +40,9 @@ execute (char **args)
 	else if (process_id == 0) // new process created
 	{
 		if (execvp (args[0], args) == -1)
+		{
 			printf ("Command not found.\n");
+		}
 	}
 	else
 	{
@@ -55,6 +56,7 @@ execute (char **args)
 int
 main ()
 {
+
 	char line_buff[MAX_CMD_LEN];
 
 	while (1) // REPL (Read, Eval, Print, Loop). Each iteration = one command
@@ -62,15 +64,14 @@ main ()
 		printf ("$ ");
 		fflush (stdout); // force buffer to flush so prompt appears immediately
 		// wait for input
+
 		if (!fgets (line_buff, sizeof (line_buff), stdin))
 			break;
 
 		char **parsed_args = parse (line_buff);
 
 		if (parsed_args[0] != NULL)
-		{
-			pid_t pid = execute (parsed_args);
-		}
+			execute (parsed_args);
 
 		free (parsed_args);
 	}
