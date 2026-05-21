@@ -22,8 +22,7 @@ parse(char *command)
 	while (token != NULL)
 	{					   // iterate through tokens until there is none left
 		args[i++] = token; // and add the tokens to our args
-		token = strtok(NULL,
-					   " \t\n"); // update token to store the next token
+		token = strtok(NULL, " \t\n"); // update token to store the next token
 	}
 	args[i] = NULL; // NULL terminate  arr
 
@@ -44,7 +43,10 @@ execute(char **args)
 	else if (process_id == 0)
 	{ // new process created
 		if (execvp(args[0], args) == -1)
+		{
 			printf("Command not found.\n");
+			exit(-1);
+		}
 	}
 	else
 	{
@@ -69,7 +71,7 @@ main()
 		// wait for input
 
 		if (fgets(line_buff, sizeof(line_buff), stdin) == NULL)
-			break;
+			exit(0);
 
 		char **parsed_args = parse(line_buff);
 
