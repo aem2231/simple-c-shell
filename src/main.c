@@ -28,11 +28,13 @@ parse (char *command)
 	return args;
 }
 
-pid_t
+int
 execute (char **args)
 {
 	// new child process
 	int process_id = fork ();
+	int pid_status;
+
 	if (process_id < 0) // fork always returns -1 on error
 	{
 		printf ("Fork failed\n");
@@ -47,10 +49,10 @@ execute (char **args)
 	else
 	{
 		// wait for the child process created above to finish
-		wait (NULL);
+		waitpid (process_id, &pid_status, 0);
 	}
 
-	return process_id;
+	return pid_status;
 }
 
 int
@@ -58,10 +60,11 @@ main ()
 {
 
 	char line_buff[MAX_CMD_LEN];
+	int status = 0;
 
 	while (1) // REPL (Read, Eval, Print, Loop). Each iteration = one command
 	{
-		printf ("$ ");
+		printf ("[%d]$ ", status);
 		fflush (stdout); // force buffer to flush so prompt appears immediately
 		// wait for input
 
@@ -71,7 +74,9 @@ main ()
 		char **parsed_args = parse (line_buff);
 
 		if (parsed_args[0] != NULL)
-			execute (parsed_args);
+		{
+			status = execute (parsed_args);
+		}
 
 		free (parsed_args);
 	}
