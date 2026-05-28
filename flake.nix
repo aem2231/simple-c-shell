@@ -29,7 +29,7 @@
               gnumake
               lcov
               readline
-			  strace
+              strace
               perf
               vcpkg
               vcpkg-tool
