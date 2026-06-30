@@ -19,6 +19,7 @@
           }
           {
             packages = with pkgs; [
+			  bear
               clang-tools
               cmake
               codespell
