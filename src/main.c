@@ -30,9 +30,6 @@ parse(char *command)
 	}
 	args[i] = NULL; // NULL terminate  arr
 
-	for (int i = 0; args[i] != NULL; i++)
-		printf("%s\n", args[i]);
-
 	return args;
 }
 
@@ -51,7 +48,7 @@ execute(char **args)
 	{ // new process created
 		if (execvp(args[0], args) == -1)
 		{
-			printf("Command not found.\n");
+		    printf("Command not found: %s\n", args[0]);
 			exit(-1);
 		}
 	}
@@ -87,11 +84,12 @@ main()
 		{
 			if (strcmp(parsed_args[0], "cd") == 0)
 				shell_cd(parsed_args);
-			if (strcmp(parsed_args[0], "exit") == 0)
+			else if (strcmp(parsed_args[0], "exit") == 0)
 				shell_exit(parsed_args);
 			else
 				status = execute(parsed_args);
+
+			free(parsed_args);
 		}
-		free(parsed_args);
 	}
 }
