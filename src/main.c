@@ -38,7 +38,6 @@ tokenise(char **cursor)
 	// terminator
 	while ((!isspace(**cursor) && **cursor != '\0') && (**cursor != '\''))
 	{
-		printf("%c\n", **cursor);
 		(*cursor)++;
 	}
 
@@ -47,9 +46,10 @@ tokenise(char **cursor)
 		(*cursor)++;
 		while (**cursor != '\'' && **cursor != '\0')
 		{
-			printf("%c\n", **cursor);
 			(*cursor)++;
 		}
+		start[0] = '\0';
+		start++;
 	}
 
 	if (**cursor != '\0') // at the end of this token,
