@@ -1,6 +1,8 @@
+#include <ctype.h>
 #include <errno.h>	// For error handling
 #include <fcntl.h>	// For file control options used with open()
 #include <signal.h> // For signal handling
+#include <stdatomic.h>
 #include <stdbool.h>
 #include <stdio.h>	// For standard input/output functions like printf, stderr
 #include <stdlib.h> // For memory allocation (malloc, free) and exit
@@ -16,20 +18,64 @@
 
 const char *builtins[] = { "cd", "exit" };
 
+char *
+tokenise(char **cursor)
+{
+
+	bool skip_whitespace_fill;
+
+	// skip leading whitespace
+	while (isspace(**cursor) && **cursor != '\0')
+		(*cursor)++;
+
+	// already at the end of string - nothing but whitespace so return null
+	if (**cursor == '\0')
+		return NULL;
+
+	char *start = *cursor; // need to track where we started
+
+	// iterate through the tokens chars unitl we hit whitespace or null
+	// terminator
+	while ((!isspace(**cursor) && **cursor != '\0') && (**cursor != '\''))
+	{
+		printf("%c\n", **cursor);
+		(*cursor)++;
+	}
+
+	if (**cursor == '\'')
+	{
+		(*cursor)++;
+		while (**cursor != '\'' && **cursor != '\0')
+		{
+			printf("%c\n", **cursor);
+			(*cursor)++;
+		}
+	}
+
+	if (**cursor != '\0') // at the end of this token,
+						  // so check if its /0
+	{
+		**cursor = '\0'; // and replace if it isnt
+		(*cursor)++;	 // then go forwatd one to prevent bugs
+	}
+
+	return start;
+}
+
 char **
-parse(char *command)
+parse_args(char *command)
 {
 	char **args = malloc(MAX_ARGS * sizeof(char *));
 	int i = 0;
-
-	char *token = strtok(command, " \t\n");
-	while (token != NULL && i < (MAX_ARGS - 1))
-	{					   // iterate through tokens until there is none left
-		args[i++] = token; // and add the tokens to our args
-		token = strtok(NULL, " \t\n"); // update token to store the next token
+	char *cursor = command; // cursor is a pointer to the current position,
+							// needed by tokenise to know where we are
+	char *token = tokenise(&cursor);
+	while (token != NULL && i < (MAX_ARGS))
+	{
+		args[i++] = token;
+		token = tokenise(&cursor);
 	}
-	args[i] = NULL; // NULL terminate  arr
-
+	args[i] = NULL;
 	return args;
 }
 
@@ -48,7 +94,7 @@ execute(char **args)
 	{ // new process created
 		if (execvp(args[0], args) == -1)
 		{
-		    printf("Command not found: %s\n", args[0]);
+			printf("Command not found: %s\n", args[0]);
 			exit(-1);
 		}
 	}
@@ -78,7 +124,7 @@ main()
 		if (fgets(line_buff, sizeof(line_buff), stdin) == NULL)
 			exit(0);
 
-		char **parsed_args = parse(line_buff);
+		char **parsed_args = parse_args(line_buff);
 
 		if (parsed_args[0] != NULL)
 		{
