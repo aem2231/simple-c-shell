@@ -1,7 +1,5 @@
 #include <ctype.h>
-#include <errno.h>	// For error handling
-#include <fcntl.h>	// For file control options used with open()
-#include <signal.h> // For signal handling
+#include <fcntl.h> // For file control options used with open()
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stdio.h>	// For standard input/output functions like printf, stderr
