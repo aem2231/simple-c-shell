@@ -1,5 +1,7 @@
 #include <ctype.h>
-#include <fcntl.h> // For file control options used with open()
+#include <errno.h>	// For error handling
+#include <fcntl.h>	// For file control options used with open()
+#include <signal.h> // For signal handling
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stdio.h>	// For standard input/output functions like printf, stderr
@@ -10,6 +12,7 @@
 #include <unistd.h> // For POSIX operating system API, including fork, exec, pipe, chdir
 
 #include "../include/shell_builtins.h"
+#include "../include/terminal.h"
 
 #define MAX_CMD_LEN 1024
 #define MAX_ARGS 64
@@ -36,6 +39,7 @@ tokenise(char **cursor)
 	// terminator
 	while ((!isspace(**cursor) && **cursor != '\0') && (**cursor != '\''))
 	{
+		printf("%c\n", **cursor);
 		(*cursor)++;
 	}
 
@@ -44,10 +48,9 @@ tokenise(char **cursor)
 		(*cursor)++;
 		while (**cursor != '\'' && **cursor != '\0')
 		{
+			printf("%c\n", **cursor);
 			(*cursor)++;
 		}
-		start[0] = '\0';
-		start++;
 	}
 
 	if (**cursor != '\0') // at the end of this token,
@@ -90,9 +93,11 @@ execute(char **args)
 	}
 	else if (process_id == 0)
 	{ // new process created
+		disable_raw_mode();
 		if (execvp(args[0], args) == -1)
 		{
 			printf("Command not found: %s\n", args[0]);
+			enable_raw_mode();
 			exit(-1);
 		}
 	}
@@ -100,9 +105,18 @@ execute(char **args)
 	{
 		// wait for the child process created above to finish
 		waitpid(process_id, &pid_status, 0);
+		enable_raw_mode();
 	}
 
 	return pid_status;
+}
+
+char *
+read_line(char *restrict s, int n)
+{
+    while (read(STDIN_FILENO, s, 1)) {
+    }
+    return NULL;
 }
 
 int
@@ -119,7 +133,12 @@ main()
 		fflush(stdout); // force buffer to flush so prompt appears immediately
 		// wait for input
 
-		if (fgets(line_buff, sizeof(line_buff), stdin) == NULL)
+		enable_raw_mode();
+
+		//	if (fgets(line_buff, sizeof(line_buff), stdin) == NULL)
+		//		exit(0);
+		//
+		if (read_line(&line_buff[0], sizeof(line_buff)) == NULL)
 			exit(0);
 
 		char **parsed_args = parse_args(line_buff);

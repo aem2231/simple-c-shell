@@ -51,13 +51,10 @@ shell_cd(char **args)
 	{
 		fprintf(stderr, "expected argument to \"cd\"\n");
 	}
-	else
+	else if (chdir(args[1]) != 0)
 	{
-		if (chdir(args[1]) != 0)
-		{
-			display_builtin_error();
-			return -1;
-		}
+		display_builtin_error();
+		return -1;
 	}
 
 	return 1;
